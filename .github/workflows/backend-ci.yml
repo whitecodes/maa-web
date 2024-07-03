@@ -23,7 +23,7 @@ jobs:
         go-version: latest
 
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Get dependencies
       run: go mod download
