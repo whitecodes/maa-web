@@ -29,7 +29,7 @@ jobs:
       run: go mod download
 
     - name: Set environment variable for library path
-      run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib" >> $GITHUB_ENV
+      run: echo "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$(pwd)/lib" >> $GITHUB_ENV
 
     - name: Run go vet
       run: go vet ./...
