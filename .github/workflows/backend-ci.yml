@@ -28,10 +28,15 @@ jobs:
     - name: Get dependencies
       run: go mod download
 
+    - name: Set environment variable for library path
+      run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib" >> $GITHUB_ENV
+
     - name: Run go vet
       run: go vet ./...
 
     - name: Run tests
+      env:
+        LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
       run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
     - name: Upload coverage to Codecov
