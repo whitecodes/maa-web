@@ -1,10 +1,6 @@
 name: Frontend CI
 
 on:
-  commit:
-    branches: [ main ]
-    paths:
-      - 'web/**'
   push:
     branches: [ main ]
     paths:

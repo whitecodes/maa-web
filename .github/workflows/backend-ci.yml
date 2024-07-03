@@ -1,10 +1,6 @@
-name: Backend CI
+name: backend-ci
 
 on:
-  commit:
-    branches: [ main ]
-    paths-ignore:
-      - "web/**"
   push:
     branches: [ main ]
     paths-ignore:
