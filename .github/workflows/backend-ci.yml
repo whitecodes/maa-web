@@ -37,7 +37,7 @@ jobs:
     - name: Run tests
       env:
         LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
-      run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+      run: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
