@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "start server",
+            "type": "shell",
+            "command": "go run main.go",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "运行服务"
+        },
+        {
+            "label": "run tests",
+            "type": "shell",
+            "command": "go test ./test/...",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

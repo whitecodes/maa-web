@@ -1,0 +1,7 @@
+@host = localhost
+@port = 8080
+
+### Get Version
+# 获取maa版本号
+GET http://{{host}}:{{port}}/version
+Accept: application/json
