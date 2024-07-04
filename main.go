@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"maa-web/internal/router"
 	"os"
@@ -34,5 +35,9 @@ func main() {
 	router.SetupRoutes(e)
 
 	// 启动服务器
-	e.Start("127.0.0.1:8080")
+	err = e.Start("127.0.0.1:8080")
+	if err != nil {
+		fmt.Println("服务器启动失败：", err)
+	}
+
 }
