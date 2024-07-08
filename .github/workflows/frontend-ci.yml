@@ -32,8 +32,9 @@ jobs:
     - name: Run type check
       run: npm run type-check
 
-    - name: Run unit tests
-      run: npm run test:unit
+    # 暂时没有单元测试
+    # - name: Run unit tests
+    #   run: npm run test:unit
 
     - name: Run linter
       run: npm run lint
