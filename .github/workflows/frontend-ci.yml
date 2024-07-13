@@ -36,8 +36,9 @@ jobs:
     # - name: Run unit tests
     #   run: npm run test:unit
 
-    - name: Run linter
-      run: npm run lint
+    # 暂时没有 linter
+    # - name: Run linter
+    #  run: npm run lint
 
     - name: Build project
       run: npm run build-only  # 尝试编译项目
