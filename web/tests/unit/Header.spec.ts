@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Header from '@/components/Header.vue'
 import { useMainStore } from '@/stores'
-import { createTestingPinia } from '@pinia/testing'
 import { describe, it, expect, vi } from 'vitest'
 import { router } from '../setup'
 
