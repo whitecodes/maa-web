@@ -32,9 +32,16 @@ jobs:
     - name: Run type check
       run: npm run type-check
 
-    # 暂时没有单元测试
+    # 单元测试
     - name: Run unit tests
       run: npm run test:unit
+
+    # 测试覆盖率
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        flags: unittests
 
     # 暂时没有 linter
     # - name: Run linter
