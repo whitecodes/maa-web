@@ -1,7 +1,7 @@
 <template>
     <div class="header">
       <div class="title">
-        MAA - v4.21.0 
+        MAA - {{ version }}
       </div>
       <div class="tabs">
         <router-link to="/one-click-grass" @click.native="selectTab('one-click-grass')">一键长草</router-link>
@@ -14,19 +14,36 @@
 
 <script>
 import { useMainStore } from '../stores'
+import api from '../services/api'
+import { defineComponent,ref,onMounted } from 'vue';
 
-export default {
+export default defineComponent ({
   name: "Header",
   setup() {
     const store = useMainStore()
+    const version = ref('')
 
     const selectTab = (tab) => {
       store.setSelectedTab(tab)
     }
 
-    return { selectTab }
+    const fetchVersion = async () => {
+      try {
+        const data = await api.getVersion()
+        version.value = data.version
+      }catch (error) {
+        console.error('Failed to fetch version:', error)
+      }
+    }
+
+    onMounted(() => {
+      fetchVersion()
+    })
+
+
+    return { selectTab, version }
   }
-}
+})
 </script>
 
 <style scoped>
