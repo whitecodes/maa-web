@@ -1,5 +1,5 @@
 <template>
-    <div class="header">
+    <div class="version">
       <div class="title">
         MAA - {{ version }}
       </div>
@@ -18,7 +18,7 @@ import api from '../services/api'
 import { defineComponent,ref,onMounted } from 'vue';
 
 export default defineComponent ({
-  name: "Header",
+  name: "Version",
   setup() {
     const store = useMainStore()
     const version = ref('')
@@ -47,7 +47,7 @@ export default defineComponent ({
 </script>
 
 <style scoped>
-.header {
+.version {
   display: flex;
   justify-content: space-between;
   align-items: center;

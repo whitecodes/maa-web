@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import Header from '@/components/Header.vue'
+import Version from '@/components/Version.vue'
 import { useMainStore } from '@/stores'
 import { describe, it, expect, vi } from 'vitest'
 import { router } from '../setup'
@@ -11,9 +11,9 @@ vi.mock('@/services/api', () => ({
     }
 }))
 
-describe('Header.vue', () => {
+describe('Version.vue', () => {
     it('renders version from API', async () => {
-        const wrapper = mount(Header)
+        const wrapper = mount(Version)
 
         // Wait for the API call to resolve
         await new Promise(resolve => setTimeout(resolve, 0))
@@ -23,7 +23,7 @@ describe('Header.vue', () => {
     })
 
     it('sets selected tab when clicked', async () => {
-        const wrapper = mount(Header)
+        const wrapper = mount(Version)
 
         // 确保路由已经加载
         await router.isReady();

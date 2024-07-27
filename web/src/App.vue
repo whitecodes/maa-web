@@ -8,12 +8,12 @@
 </template>
 
 <script>
-import Header from './components/Header.vue'
+import Version from './components/Version.vue'
 
 export default {
   name: 'App',
   components: {
-    Header
+    Version
   }
 }
 </script>
