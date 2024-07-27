@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Version />
+    <VersionPanel />
     <div class="main-content">
       <router-view></router-view>
     </div>
@@ -8,12 +8,12 @@
 </template>
 
 <script>
-import Version from './components/Version.vue'
+import VersionPanel from './components/VersionPanel.vue'
 
 export default {
   name: 'App',
   components: {
-    Version
+    VersionPanel
   }
 }
 </script>

@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Sidebar from '../components/GrassComponent.vue'
-import Battle from '../components/BattlePanel.vue'
-import Tools from '../components/ToolsPanel.vue'
+import Sidebar from '../components/GrassPanel.vue'
+import BattlePanel from '../components/BattlePanel.vue'
+import ToolsPanel from '../components/ToolsPanel.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
 
 
 const routes = [
   { path: '/', redirect: '/one-click-grass' },
   { path: '/one-click-grass', component: Sidebar },
-  { path: '/auto-battle', component: Battle },
-  { path: '/tools', component: Tools },
+  { path: '/auto-battle', component: BattlePanel },
+  { path: '/tools', component: ToolsPanel },
   { path: '/settings', component: SettingsPanel }
 ]
 
