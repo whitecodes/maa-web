@@ -47,8 +47,8 @@ jobs:
         flags: unittests
 
     # 暂时没有 linter
-    # - name: Run linter
-    #  run: npm run lint
+    - name: Run linter
+      run: npm run lint
 
     - name: Build project
       run: npm run build-only  # 尝试编译项目
