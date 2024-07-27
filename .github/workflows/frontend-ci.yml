@@ -27,7 +27,7 @@ jobs:
         node-version: 'latest'  # 使用最新版本的 Node.js
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --force
 
     - name: Run type check
       run: npm run type-check
