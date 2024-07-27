@@ -4,10 +4,10 @@
         MAA - {{ version }}
       </div>
       <div class="tabs">
-        <router-link to="/one-click-grass" @click.native="selectTab('one-click-grass')">一键长草</router-link>
-        <router-link to="/auto-battle" @click.native="selectTab('auto-battle')">自动战斗</router-link>
-        <router-link to="/tools" @click.native="selectTab('tools')">小工具</router-link>
-        <router-link to="/settings" @click.native="selectTab('settings')">设置</router-link>
+        <router-link to="/one-click-grass" @click="selectTab('one-click-grass')">一键长草</router-link>
+        <router-link to="/auto-battle" @click="selectTab('auto-battle')">自动战斗</router-link>
+        <router-link to="/tools" @click="selectTab('tools')">小工具</router-link>
+        <router-link to="/settings" @click="selectTab('settings')">设置</router-link>
       </div>
     </div>
   </template>
