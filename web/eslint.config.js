@@ -11,5 +11,5 @@ export default [
   ...tseslint.configs.recommended,
   ...pluginVue.configs["flat/essential"],
   {files: ["**/*.vue"], languageOptions: {parserOptions: {parser: tseslint.parser}}},
-  {ignores: ["converage/", "dist/", "node_modules/"]}
+  {ignores: ["coverage/", "dist/", "node_modules/"]}
 ];
