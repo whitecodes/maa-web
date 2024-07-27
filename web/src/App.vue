@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Header />
+    <Version />
     <div class="main-content">
       <router-view></router-view>
     </div>
