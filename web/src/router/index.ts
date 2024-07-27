@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Sidebar from '../components/Grass.vue'
-import Battle from '../components/Battle.vue'
-import Tools from '../components/Tools.vue'
+import Sidebar from '../components/GrassComponent.vue'
+import Battle from '../components/BattlePanel.vue'
+import Tools from '../components/ToolsPanel.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
 
 

@@ -1,6 +1,6 @@
 <template>
     <div>
-      <h2>一键长草</h2>
+      <h2>小工具</h2>
     </div>
   </template>
   
@@ -8,6 +8,6 @@
   import { defineComponent } from 'vue'
   
   export default defineComponent({
-    name: 'Grass'
+    name: 'ToolsPane'
   })
   </script>

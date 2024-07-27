@@ -18,7 +18,7 @@ import api from '../services/api'
 import { defineComponent,ref,onMounted } from 'vue';
 
 export default defineComponent ({
-  name: "Version",
+  name: "VersionPane",
   setup() {
     const store = useMainStore()
     const version = ref('')
