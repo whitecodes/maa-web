@@ -33,7 +33,7 @@
     "@vue/tsconfig": "^0.5.1",
     "eslint": "^9.8.0",
     "eslint-plugin-vue": "^9.27.0",
-    "globals": "^15.8.0",
+    "globals": "^15.9.0",
     "jsdom": "^24.1.1",
     "npm-run-all2": "^6.2.2",
     "typescript": "~5.5.4",
