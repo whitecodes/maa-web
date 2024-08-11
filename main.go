@@ -34,7 +34,7 @@ func main() {
 	// 设置路由
 	router.SetupRoutes(e)
 
-	// 启动服务器
+	// 启动服务器s
 	err = e.Start("127.0.0.1:8080")
 	if err != nil {
 		fmt.Println("服务器启动失败：", err)

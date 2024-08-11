@@ -4,6 +4,7 @@ import (
 	"maa-web/internal/handler"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -35,6 +36,35 @@ func TestGetMaaVersion(t *testing.T) {
 			assert.Equal(t, "application/json", c.Response().Header().Get(echo.HeaderContentType))
 
 			assert.Equal(t, "{\"version\":\""+tt.wantVersion+"\"}\n", rec.Body.String())
+		})
+	}
+}
+
+func TestGetMaaConnected(t *testing.T) {
+	tests := []struct {
+		name          string
+		wantErr       bool
+		wantConnected bool
+	}{
+		{
+			name:          "test connected",
+			wantErr:       false,
+			wantConnected: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/maa/connected", nil)
+			rec := httptest.NewRecorder()
+			c := echo.New().NewContext(req, rec)
+
+			if err := handler.GetMaaConnected(c); (err != nil) != tt.wantErr {
+				t.Errorf("GetMaaConnected() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			assert.Equal(t, http.StatusOK, c.Response().Status)
+			assert.Equal(t, "application/json", c.Response().Header().Get(echo.HeaderContentType))
+
+			assert.Equal(t, "{\"connected\":"+strconv.FormatBool(tt.wantConnected)+"}\n", rec.Body.String())
 		})
 	}
 }

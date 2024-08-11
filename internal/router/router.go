@@ -8,4 +8,5 @@ import (
 
 func SetupRoutes(e *echo.Echo) {
 	e.GET("/version", handler.GetVersion)
+	e.GET("/maa/connected", handler.GetMaaConnected)
 }

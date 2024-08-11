@@ -1,27 +1,28 @@
 <template>
-    <div class="version">
-      <div class="title">
-        MAA - {{ version }}
-      </div>
-      <div class="tabs">
-        <router-link to="/one-click-grass" @click="selectTab('one-click-grass')">一键长草</router-link>
-        <router-link to="/auto-battle" @click="selectTab('auto-battle')">自动战斗</router-link>
-        <router-link to="/tools" @click="selectTab('tools')">小工具</router-link>
-        <router-link to="/settings" @click="selectTab('settings')">设置</router-link>
-      </div>
+  <div class="version">
+    <div class="title">
+      MAA - {{ version }} {{ connected }}
     </div>
-  </template>
+    <div class="tabs">
+      <router-link to="/one-click-grass" @click="selectTab('one-click-grass')">一键长草</router-link>
+      <router-link to="/auto-battle" @click="selectTab('auto-battle')">自动战斗</router-link>
+      <router-link to="/tools" @click="selectTab('tools')">小工具</router-link>
+      <router-link to="/settings" @click="selectTab('settings')">设置</router-link>
+    </div>
+  </div>
+</template>
 
 <script>
 import { useMainStore } from '../stores'
 import api from '../services/api'
-import { defineComponent,ref,onMounted } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 
-export default defineComponent ({
+export default defineComponent({
   name: "VersionPanel",
   setup() {
     const store = useMainStore()
     const version = ref('')
+    const connected = ref('ssss')
 
     const selectTab = (tab) => {
       store.setSelectedTab(tab)
@@ -31,17 +32,31 @@ export default defineComponent ({
       try {
         const data = await api.getVersion()
         version.value = data.version
-      }catch (error) {
+      } catch (error) {
         console.error('Failed to fetch version:', error)
+      }
+    }
+
+    const fetchConnected = async () => {
+      try {
+        const data = await api.getMaaConnected()
+        if (data.connected) {
+          connected.value = 'connected'
+        } else {
+          connected.value = 'disconnected'
+        }
+      } catch (error) {
+        console.error('Failed to fetch connected:', error)
       }
     }
 
     onMounted(() => {
       fetchVersion()
+      fetchConnected()
     })
 
 
-    return { selectTab, version }
+    return { selectTab, version, connected }
   }
 })
 </script>
@@ -54,13 +69,16 @@ export default defineComponent ({
   padding: 10px;
   background: #f0f0f0;
 }
+
 .title {
   font-weight: bold;
 }
+
 .tabs {
   display: flex;
   gap: 10px;
 }
+
 .tabs a {
   text-decoration: none;
   color: inherit;
@@ -68,6 +86,7 @@ export default defineComponent ({
   border-radius: 3px;
   transition: background-color 0.3s;
 }
+
 .tabs a:hover {
   background-color: #ddd;
 }

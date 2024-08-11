@@ -1,7 +1,15 @@
 @host = localhost
 @port = 8080
 
-### Get Version
+###
+# @name getVersion
 # 获取maa版本号
 GET http://{{host}}:{{port}}/version
+Accept: application/json
+
+
+###
+# @name getMaaConnected
+# 获取MAA是否连接
+GET http://{{host}}:{{port}}/maa/connected
 Accept: application/json
