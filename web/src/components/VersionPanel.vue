@@ -15,7 +15,7 @@
 <script setup>
 import { useMainStore } from '../stores'
 import api from '../services/api'
-import { defineComponent, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 const store = useMainStore()
 const version = ref('')
