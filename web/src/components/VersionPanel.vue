@@ -12,52 +12,45 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { useMainStore } from '../stores'
 import api from '../services/api'
 import { defineComponent, ref, onMounted } from 'vue';
 
-export default defineComponent({
-  name: "VersionPanel",
-  setup() {
-    const store = useMainStore()
-    const version = ref('')
-    const connected = ref('ssss')
+const store = useMainStore()
+const version = ref('')
+const connected = ref('ssss')
 
-    const selectTab = (tab) => {
-      store.setSelectedTab(tab)
-    }
+const selectTab = (tab) => {
+  store.setSelectedTab(tab)
+}
 
-    const fetchVersion = async () => {
-      try {
-        const data = await api.getVersion()
-        version.value = data.version
-      } catch (error) {
-        console.error('Failed to fetch version:', error)
-      }
-    }
-
-    const fetchConnected = async () => {
-      try {
-        const data = await api.getMaaConnected()
-        if (data.connected) {
-          connected.value = 'connected'
-        } else {
-          connected.value = 'disconnected'
-        }
-      } catch (error) {
-        console.error('Failed to fetch connected:', error)
-      }
-    }
-
-    onMounted(() => {
-      fetchVersion()
-      fetchConnected()
-    })
-
-
-    return { selectTab, version, connected }
+const fetchVersion = async () => {
+  try {
+    const data = await api.getVersion()
+    version.value = data.version
+  } catch (error) {
+    console.error('Failed to fetch version:', error)
   }
+}
+
+const fetchConnected = async () => {
+  try {
+    const data = await api.getMaaConnected()
+    if (data.connected) {
+      connected.value = 'connected'
+    } else {
+      connected.value = 'disconnected'
+    }
+  } catch (error) {
+    console.error('Failed to fetch connected:', error)
+    connected.value = 'unknown'
+  }
+}
+
+onMounted(() => {
+  fetchVersion()
+  fetchConnected()
 })
 </script>
 
