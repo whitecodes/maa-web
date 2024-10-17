@@ -68,3 +68,23 @@ func TestGetMaaConnected(t *testing.T) {
 		})
 	}
 }
+
+// func TestConnectDevice(t *testing.T) {
+// 	tests := []struct {
+// 		name    string
+// 		wantErr bool
+// 		inputAddress string
+// 		inputAdbPath string
+// 	}{
+// 		{
+// 			name:    "test connect device",
+// 			wantErr: false,
+// 			inputAddress: "192.168.123.234:5555",
+// 			inputAdbPath: "/usr/bin/adb",
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+
+// 	})
+// }
