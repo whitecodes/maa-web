@@ -13,3 +13,27 @@ Accept: application/json
 # 获取MAA是否连接
 GET http://{{host}}:{{port}}/maa/connected
 Accept: application/json
+
+###
+# @name getConnectConf
+# 获取连接配置
+GET http://{{host}}:{{port}}/maa/connectConf
+Accept: application/json
+
+###
+# @name postConnectConf
+# 保存连接配置
+POST http://{{host}}:{{port}}/maa/connectConf
+Accept: application/json
+Content-Type: application/json
+
+{
+    "deviceIp":"192.168.123.203",
+    "devicePort":555
+}
+
+###
+# @name doTestConnect
+# 测试连接配置
+POST http://{{host}}:{{port}}/maa/testConnect
+Accept: application/json

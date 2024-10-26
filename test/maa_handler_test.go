@@ -69,6 +69,37 @@ func TestGetMaaConnected(t *testing.T) {
 	}
 }
 
+func TestGetMaaConnectConf(t *testing.T) {
+	tests := []struct {
+		name		string
+		wantErr 	bool
+		wantIp		string
+		wantPort	int
+	}{
+		{
+			name: "test getConnectConf",
+			wantErr:false,
+			wantIp:"192.168.123.203",
+			wantPort:5555,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/maa/connectConf", nil)
+			rec := httptest.NewRecorder()
+			c := echo.New().NewContext(req, rec)
+
+			if err := handler.GetMaaConnectConf(c); (err != nil) != tt.wantErr {
+				t.Errorf("GetMaaConnectConf() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			assert.Equal(t, http.StatusOK, c.Response().Status)
+			assert.Equal(t, "application/json", c.Response().Header().Get(echo.HeaderContentType))
+		})
+	}
+	
+}
+
+
 // func TestConnectDevice(t *testing.T) {
 // 	tests := []struct {
 // 		name    string

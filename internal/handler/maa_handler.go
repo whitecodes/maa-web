@@ -18,6 +18,11 @@ func GetMaaConnected(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]bool{"connected": maa_connected})
 }
 
+func GetMaaConnectConf(c echo.Context) error {
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "connected"})
+}
+
 // func ConnectDevice(c echo.Context) error {
 // 	c.Request()
 // 	maaHandle := service.GetMaaHandle()
