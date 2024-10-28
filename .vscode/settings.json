@@ -2,4 +2,5 @@
     "go.testEnvVars": {
         "LD_LIBRARY_PATH": "${workspaceFolder}/lib"
     },
+    "Codegeex.CommitMessageStyle": "Default",
 }
