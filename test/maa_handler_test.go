@@ -71,16 +71,16 @@ func TestGetMaaConnected(t *testing.T) {
 
 func TestGetMaaConnectConf(t *testing.T) {
 	tests := []struct {
-		name		string
-		wantErr 	bool
-		wantIp		string
-		wantPort	int
+		name     string
+		wantErr  bool
+		wantIp   string
+		wantPort int
 	}{
 		{
-			name: "test getConnectConf",
-			wantErr:false,
-			wantIp:"192.168.123.203",
-			wantPort:5555,
+			name:     "test getConnectConf",
+			wantErr:  false,
+			wantIp:   "192.168.123.203",
+			wantPort: 5555,
 		},
 	}
 	for _, tt := range tests {
@@ -96,9 +96,8 @@ func TestGetMaaConnectConf(t *testing.T) {
 			assert.Equal(t, "application/json", c.Response().Header().Get(echo.HeaderContentType))
 		})
 	}
-	
-}
 
+}
 
 // func TestConnectDevice(t *testing.T) {
 // 	tests := []struct {
