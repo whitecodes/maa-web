@@ -4,3 +4,4 @@ dist/
 *.log
 lib/
 web/coverage/
+.vscode/settings.json
