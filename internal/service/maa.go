@@ -43,7 +43,7 @@ func GetMaaConnected(maa *AsstHandle) bool {
 func ConnectDevice(maa *AsstHandle, adbPath string, address string, conf string) error {
 	asstAsyncCallId := C.AsstAsyncConnect(maa.handle, C.CString(adbPath), C.CString(address), C.CString(conf), C.uint8_t(0))
 
-	if 0 != asstAsyncCallId {
+	if asstAsyncCallId != 0 {
 		return nil
 
 	}
