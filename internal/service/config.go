@@ -3,9 +3,9 @@ package service
 import "github.com/spf13/viper"
 
 type ConnectConf struct {
-	adbPath string
+	AdbPath string `json:"adbPath"`
 	Address string `json:"address"`
-	config  string
+	Config  string `json:"config"`
 }
 
 func init() {
@@ -17,8 +17,14 @@ func init() {
 
 func GetMaaConnectConf() ConnectConf {
 	var connectConf ConnectConf
-	connectConf.adbPath = viper.GetString("adbPath")
+	connectConf.AdbPath = viper.GetString("adbPath")
 	connectConf.Address = viper.GetString("address")
-	connectConf.config = viper.GetString("config")
+	connectConf.Config = viper.GetString("config")
 	return connectConf
+}
+
+func SetMaaConnectConf(adbPath string, address string) ConnectConf {
+	viper.Set("address", address)
+	viper.Set("adbPath", adbPath)
+	return GetMaaConnectConf()
 }

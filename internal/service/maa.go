@@ -8,6 +8,9 @@ package service
 */
 import "C"
 import (
+	"errors"
+	"log"
+	"strconv"
 	"sync"
 )
 
@@ -35,17 +38,35 @@ func GetMaaHandle() *AsstHandle {
 	return instance
 }
 
+func DestroyMaaHandle(maa *AsstHandle) {
+	C.AsstDestroy(maa.handle)
+}
+
+func LoadMaaResource(resoucePath string) error {
+	loaded := C.AsstLoadResource(C.CString(resoucePath))
+	if loaded == 0 {
+		return errors.New("load Resource failed")
+	}
+	return nil
+}
+
 func GetMaaConnected(maa *AsstHandle) bool {
 	connected := C.AsstConnected(maa.handle)
+	// C 中的布尔值是 int 类型，0 为 false，非 0 为 true
 	return connected != 0
 }
 
 func ConnectDevice(maa *AsstHandle, adbPath string, address string, conf string) error {
-	asstAsyncCallId := C.AsstAsyncConnect(maa.handle, C.CString(adbPath), C.CString(address), C.CString(conf), C.uint8_t(0))
+	asstAsyncCallId := C.AsstAsyncConnect(maa.handle, C.CString(adbPath), C.CString(address), C.CString(conf), C.uint8_t(1))
 
-	if asstAsyncCallId != 0 {
-		return nil
-
+	if asstAsyncCallId == 0 {
+		log.Println("connect device " + address + " fail: " + strconv.Itoa(int(asstAsyncCallId)))
+		return errors.New("connect device failed")
 	}
 	return nil
+}
+
+func BackToHome(maa *AsstHandle) bool {
+	back := C.AsstBackToHome(maa.handle)
+	return back != 0
 }

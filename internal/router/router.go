@@ -10,4 +10,6 @@ func SetupRoutes(e *echo.Echo) {
 	e.GET("/version", handler.GetVersion)
 	e.GET("/maa/connected", handler.GetMaaConnected)
 	e.GET("/maa/connectConf", handler.GetMaaConnectConf)
+	e.POST("/maa/connectConf", handler.SetMaaConnectConf)
+	e.POST("/maa/testConnect", handler.TestConnect)
 }

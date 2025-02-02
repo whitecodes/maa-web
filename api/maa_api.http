@@ -27,8 +27,8 @@ Accept: application/json
 Content-Type: application/json
 
 {
-    "deviceIp":"192.168.123.203",
-    "devicePort":555
+    "address":"192.168.123.234:5555",
+    "adbPath":"/usr/bin/adb"
 }
 
 ###
@@ -36,3 +36,10 @@ Content-Type: application/json
 # 测试连接配置
 POST http://{{host}}:{{port}}/maa/testConnect
 Accept: application/json
+Content-Type: application/json
+
+{
+    "address":"192.168.123.234:5555",
+    "adbPath":"/usr/bin/adb",
+    "config":"CompatPOSIXShell"
+}
