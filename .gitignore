@@ -5,3 +5,4 @@ dist/
 lib/
 web/coverage/
 .vscode/settings.json
+lib/
