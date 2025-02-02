@@ -2,7 +2,5 @@ node_modules/
 vendor/
 dist/
 *.log
-lib/
 web/coverage/
 .vscode/settings.json
-lib/
