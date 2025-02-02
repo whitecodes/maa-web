@@ -46,6 +46,7 @@ jobs:
         file: ./coverage.txt
         flags: unittests
         name: codecov-umbrella
+        continue-on-error: true  # 即使测试失败，依然会上传覆盖率报告
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
