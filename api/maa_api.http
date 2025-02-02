@@ -7,7 +7,6 @@
 GET http://{{host}}:{{port}}/version
 Accept: application/json
 
-
 ###
 # @name getMaaConnected
 # 获取MAA是否连接

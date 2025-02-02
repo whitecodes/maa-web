@@ -77,10 +77,9 @@ func TestGetMaaConnectConf(t *testing.T) {
 		wantPort int
 	}{
 		{
-			name:     "test getConnectConf",
-			wantErr:  false,
-			wantIp:   "192.168.123.203",
-			wantPort: 5555,
+			name:    "test getConnectConf",
+			wantErr: false,
+			wantIp:  "192.168.123.234:5555",
 		},
 	}
 	for _, tt := range tests {
@@ -94,6 +93,7 @@ func TestGetMaaConnectConf(t *testing.T) {
 			}
 			assert.Equal(t, http.StatusOK, c.Response().Status)
 			assert.Equal(t, "application/json", c.Response().Header().Get(echo.HeaderContentType))
+			assert.Equal(t, "{\"address\":\""+tt.wantIp+"\"}\n", rec.Body.String())
 		})
 	}
 

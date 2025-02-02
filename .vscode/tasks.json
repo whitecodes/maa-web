@@ -9,6 +9,11 @@
                 "kind": "build",
                 "isDefault": true
             },
+            "options": {
+                "env": {
+                    "LD_LIBRARY_PATH": "./lib:$LD_LIBRARY_PATH"
+                }
+            },
             "detail": "运行服务"
         },
         {

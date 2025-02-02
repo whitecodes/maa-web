@@ -20,7 +20,7 @@ func GetMaaConnected(c echo.Context) error {
 
 func GetMaaConnectConf(c echo.Context) error {
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "connected"})
+	return c.JSON(http.StatusOK, service.GetMaaConnectConf())
 }
 
 // func ConnectDevice(c echo.Context) error {
