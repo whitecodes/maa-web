@@ -20,7 +20,7 @@ func TestGetMaaVersion(t *testing.T) {
 		{
 			name:        "test getversion",
 			wantErr:     false,
-			wantVersion: "v5.4.0-beta.2",
+			wantVersion: "v5.13.0-beta.2",
 		},
 	}
 	for _, tt := range tests {
