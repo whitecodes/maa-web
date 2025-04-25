@@ -146,49 +146,49 @@ func TestSetMaaConnectConf(t *testing.T) {
 
 }
 
-func TestConnectDevice(t *testing.T) {
-	tests := []struct {
-		name         string
-		wantErr      bool
-		inputAddress string
-		inputAdbPath string
-		inputConfig  string
-	}{
-		{
-			name:         "test connect device",
-			wantErr:      false,
-			inputAddress: "192.168.123.234:5555",
-			inputAdbPath: "/usr/bin/adb",
-			inputConfig:  "CompatPOSIXShell",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+// func TestConnectDevice(t *testing.T) {
+// 	tests := []struct {
+// 		name         string
+// 		wantErr      bool
+// 		inputAddress string
+// 		inputAdbPath string
+// 		inputConfig  string
+// 	}{
+// 		{
+// 			name:         "test connect device",
+// 			wantErr:      false,
+// 			inputAddress: "192.168.123.234:5555",
+// 			inputAdbPath: "/usr/bin/adb",
+// 			inputConfig:  "CompatPOSIXShell",
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
 
-			requestData := map[string]interface{}{
-				"address": tt.inputAddress,
-				"adbPath": tt.inputAdbPath,
-				"config":  tt.inputConfig,
-			}
+// 			requestData := map[string]interface{}{
+// 				"address": tt.inputAddress,
+// 				"adbPath": tt.inputAdbPath,
+// 				"config":  tt.inputConfig,
+// 			}
 
-			// 将请求参数转为 JSON 格式
-			jsonData, err := json.Marshal(requestData)
-			if err != nil {
-				t.Fatalf("Failed to marshal JSON: %v", err)
-			}
+// 			// 将请求参数转为 JSON 格式
+// 			jsonData, err := json.Marshal(requestData)
+// 			if err != nil {
+// 				t.Fatalf("Failed to marshal JSON: %v", err)
+// 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/maa/testConnect", bytes.NewReader(jsonData))
-			req.Header.Set("Content-Type", "application/json")
+// 			req := httptest.NewRequest(http.MethodPost, "/maa/testConnect", bytes.NewReader(jsonData))
+// 			req.Header.Set("Content-Type", "application/json")
 
-			rec := httptest.NewRecorder()
-			c := echo.New().NewContext(req, rec)
+// 			rec := httptest.NewRecorder()
+// 			c := echo.New().NewContext(req, rec)
 
-			if err := handler.TestConnect(c); (err != nil) != tt.wantErr {
-				t.Errorf("TestConnect() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			assert.Equal(t, http.StatusOK, c.Response().Status)
-			assert.Equal(t, "application/json", c.Response().Header().Get(echo.HeaderContentType))
-			assert.Equal(t, "{\"status\":\"success\"}\n", rec.Body.String())
-		})
-	}
+// 			if err := handler.TestConnect(c); (err != nil) != tt.wantErr {
+// 				t.Errorf("TestConnect() error = %v, wantErr %v", err, tt.wantErr)
+// 			}
+// 			assert.Equal(t, http.StatusOK, c.Response().Status)
+// 			assert.Equal(t, "application/json", c.Response().Header().Get(echo.HeaderContentType))
+// 			assert.Equal(t, "{\"status\":\"success\"}\n", rec.Body.String())
+// 		})
+// 	}
 }

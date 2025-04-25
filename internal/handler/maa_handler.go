@@ -48,7 +48,8 @@ func TestConnect(c echo.Context) error {
 
 	maaHandle := service.GetMaaHandle()
 
-	err = service.ConnectDevice(maaHandle, connectConf.AdbPath, connectConf.Address, connectConf.Config)
+	// err = service.ConnectDevice(maaHandle, connectConf.AdbPath, connectConf.Address, connectConf.Config)
+	err = service.ConnectDevice(maaHandle, connectConf.AdbPath, connectConf.Address, "General")
 	defer service.DestroyMaaHandle(maaHandle)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"status": err.Error()})
