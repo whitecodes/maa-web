@@ -191,4 +191,3 @@ func TestSetMaaConnectConf(t *testing.T) {
 // 			assert.Equal(t, "{\"status\":\"success\"}\n", rec.Body.String())
 // 		})
 // 	}
-}
