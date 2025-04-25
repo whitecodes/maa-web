@@ -50,7 +50,6 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage.txt
         flags: unittests 
-        verbose: true    # 添加详细输出，便于调试覆盖率问题
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v7
