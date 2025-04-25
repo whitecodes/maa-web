@@ -38,7 +38,7 @@ jobs:
       env:
         LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
       run: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
-      continue-on-error: true  # 即使测试失败，依然会上传覆盖率报告
+      # continue-on-error: true  # 即使测试失败，依然会上传覆盖率报告
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
