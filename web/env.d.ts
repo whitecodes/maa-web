@@ -12,6 +12,6 @@ interface ImportMeta {
 
 interface ImportMetaEnv {
     readonly VITE_APP_TITLE: string
-    readonly BASE_URL: string
+    readonly BASE_URL?: string
     // 更多环境变量...
 }
