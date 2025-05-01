@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
-    "@pinia/testing": "^0.1.7",
+    "@pinia/testing": "^1.0.1",
     "@rushstack/eslint-patch": "^1.10.5",
     "@testing-library/jest-dom": "^6.6.3",
     "@tsconfig/node20": "^20.1.4",
