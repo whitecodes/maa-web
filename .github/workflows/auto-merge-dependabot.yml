@@ -131,9 +131,19 @@ jobs:
               });
               
               // Filter out this workflow's checks to avoid circular dependency
-              const relevantChecks = allChecks.filter(check => 
-                !check.name.includes('Auto-merge Dependabot PR')
-              );
+              const currentWorkflowName = 'Auto-merge Dependabot PRs';
+              const relevantChecks = allChecks.filter(check => {
+                const checkName = check.name.toLowerCase();
+                const isCurrentWorkflow = checkName.includes('auto-merge') ||
+                                        checkName.includes(currentWorkflowName.toLowerCase()) ||
+                                        check.name === currentWorkflowName;
+
+                if (isCurrentWorkflow) {
+                  console.log(`🔄 Filtering out self-check: ${check.name}`);
+                  return false;
+                }
+                return true;
+              });
               
               if (relevantChecks.length === 0) {
                 console.log('⚠️ No CI checks found, proceeding with merge');
