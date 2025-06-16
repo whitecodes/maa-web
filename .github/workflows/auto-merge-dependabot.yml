@@ -74,7 +74,7 @@ jobs:
             core.setFailed('❌ PR did not become mergeable within timeout.');
 
       - name: Merge PR using GitHub CLI
-        uses: cli/gh-action@v2
+        uses: actions/setup-gh@v3
 
       - name: Merge PR (auto)
         env:
