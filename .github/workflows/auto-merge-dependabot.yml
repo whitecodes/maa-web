@@ -6,138 +6,79 @@ on:
     types: [completed]
 
 permissions:
-  contents: write
   pull-requests: write
   checks: read
-  actions: read
+  contents: read
 
 jobs:
-  check-pr:
-    name: Check PR Status
+  auto-merge:
+    name: Auto-merge PR if safe
     runs-on: ubuntu-latest
-
-    if: github.event.workflow_run.conclusion == 'success'
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
       - name: Get PR details from workflow_run
-        id: pr-details
+        id: get-pr
         uses: actions/github-script@v7
         with:
+          result-encoding: string
           script: |
-            console.log('🔍 Getting PR details from workflow_run event...');
-            console.log('Workflow run:', context.payload.workflow_run);
+            const run = context.payload.workflow_run;
 
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              head: `${context.repo.owner}:${context.payload.workflow_run.head_branch}`,
+              head: `${context.repo.owner}:${run.head_branch}`,
               state: 'open'
             });
 
             if (prs.length === 0) {
-              core.setFailed('No open PR found for this workflow run');
+              core.setFailed('❌ No open PR found for this workflow run.');
               return;
             }
 
             const pr = prs[0];
-            console.log(`PR Number: ${pr.number}`);
-            console.log(`PR Title: ${pr.title}`);
-            console.log(`PR Author: ${pr.user.login}`);
-            console.log(`PR Base: ${pr.base.ref}`);
-            console.log(`PR Head: ${pr.head.ref}`);
-
             if (pr.user.login !== 'dependabot[bot]') {
-              core.setFailed(`Not a Dependabot PR. Author: ${pr.user.login}`);
+              core.setFailed(`❌ Not a Dependabot PR. Author: ${pr.user.login}`);
               return;
             }
 
-            return {
-              number: pr.number,
-              sha: pr.head.sha
-            };
+            return pr.number;
 
-      - name: Check CI and Mergeable State with Retry
-        id: check-status
+      - name: Wait for PR to be mergeable
+        id: wait-mergeable
         uses: actions/github-script@v7
         with:
           script: |
-            const prDetails = ${{ steps.pr-details.outputs.result }};
-            const maxWaitTime = 30 * 60 * 1000; // 30 minutes
-            const pollInterval = 30 * 1000; // 30 seconds
-            const startTime = Date.now();
+            const prNumber = ${{ steps.get-pr.outputs.result }};
+            const timeout = 30 * 60 * 1000;  // 30 min
+            const interval = 30 * 1000;
+            const start = Date.now();
 
-            console.log('⏳ Waiting for CI checks and mergeable state...');
-
-            while (Date.now() - startTime < maxWaitTime) {
+            while (Date.now() - start < timeout) {
               const { data: pr } = await github.rest.pulls.get({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                pull_number: prDetails.number
+                pull_number: prNumber
               });
 
-              const { data: checks } = await github.rest.checks.listForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: prDetails.sha
-              });
-
-              const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: prDetails.sha
-              });
-
-              const allChecks = [
-                ...checks.check_runs.map(check => ({
-                  name: check.name,
-                  status: check.status,
-                  conclusion: check.conclusion
-                })),
-                ...statuses.map(status => ({
-                  name: status.context,
-                  status: status.state === 'pending' ? 'in_progress' : 'completed',
-                  conclusion: status.state
-                }))
-              ];
-
-              const allChecksCompleted = allChecks.every(check => 
-                check.status === 'completed' || check.conclusion === 'success'
-              );
-
-              if (allChecksCompleted && pr.mergeable_state === 'clean') {
-                console.log('✅ All checks passed and PR is mergeable');
+              if (pr.mergeable_state === 'clean') {
+                console.log('✅ PR is mergeable (clean).');
                 return;
               }
 
-              console.log('🔄 Checks not complete or PR not mergeable yet. Retrying in 30 seconds...');
-              await new Promise(resolve => setTimeout(resolve, pollInterval));
+              console.log(`🕒 Waiting for PR to become mergeable... (state: ${pr.mergeable_state})`);
+              await new Promise(resolve => setTimeout(resolve, interval));
             }
 
-            core.setFailed('Timeout: CI checks did not complete or PR is not mergeable within the allowed time.');
+            core.setFailed('❌ PR did not become mergeable within timeout.');
 
-  merge-pr:
-    name: Merge PR
-    runs-on: ubuntu-latest
-    needs: check-pr
+      - name: Merge PR using GitHub CLI
+        uses: cli/gh-action@v2
 
-    steps:
-      - name: Install GitHub CLI
-        run: |
-          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh -y
-
-      - name: Merge PR
+      - name: Merge PR (auto)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pr_number=$(cat $GITHUB_WORKSPACE/pr_number.txt)
-          gh pr merge $pr_number --merge --auto
+          pr_number=${{ steps.get-pr.outputs.result }}
+          gh pr merge $pr_number --merge --auto --delete-branch
