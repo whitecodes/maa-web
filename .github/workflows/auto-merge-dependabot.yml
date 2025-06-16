@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: ["Dependabot Placeholder Check"]
     types: [completed]
-    branches: [ master ]
 
 # Permissions for workflow_run event
 permissions:
