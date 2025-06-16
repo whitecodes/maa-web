@@ -12,12 +12,12 @@ permissions:
   actions: read
 
 jobs:
-  auto-merge:
-    name: Auto-merge Dependabot PR
+  check-pr:
+    name: Check PR Status
     runs-on: ubuntu-latest
 
     if: github.event.workflow_run.conclusion == 'success'
-    
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -33,7 +33,6 @@ jobs:
             console.log('🔍 Getting PR details from workflow_run event...');
             console.log('Workflow run:', context.payload.workflow_run);
 
-            // Get the PR associated with the workflow run
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -53,7 +52,6 @@ jobs:
             console.log(`PR Base: ${pr.base.ref}`);
             console.log(`PR Head: ${pr.head.ref}`);
 
-            // Verify this is a Dependabot PR
             if (pr.user.login !== 'dependabot[bot]') {
               core.setFailed(`Not a Dependabot PR. Author: ${pr.user.login}`);
               return;
@@ -61,112 +59,85 @@ jobs:
 
             return {
               number: pr.number,
-              title: pr.title,
-              author: pr.user.login,
-              base: pr.base.ref,
-              head: pr.head.ref,
-              node_id: pr.node_id,
               sha: pr.head.sha
             };
 
-      - name: Determine update type
-        id: update-type
-        run: |
-          PR_TITLE="${{ fromJson(steps.pr-details.outputs.result).title }}"
-          echo "PR Title: $PR_TITLE"
-          
-          # Check for major version updates (should not auto-merge)
-          if echo "$PR_TITLE" | grep -E "(major|breaking|BREAKING)" -i; then
-            echo "auto_merge=false" >> $GITHUB_OUTPUT
-            echo "reason=Major version update detected" >> $GITHUB_OUTPUT
-          # Check for minor/patch updates (safe to auto-merge)
-          elif echo "$PR_TITLE" | grep -E "(minor|patch|bump|update)" -i; then
-            echo "auto_merge=true" >> $GITHUB_OUTPUT
-            echo "reason=Minor or patch update detected" >> $GITHUB_OUTPUT
-          # Check for security updates (should auto-merge)
-          elif echo "$PR_TITLE" | grep -E "(security|vulnerability|CVE)" -i; then
-            echo "auto_merge=true" >> $GITHUB_OUTPUT
-            echo "reason=Security update detected" >> $GITHUB_OUTPUT
-          # Default: check if it looks like a standard dependency update
-          elif echo "$PR_TITLE" | grep -E "^(build\(deps\)|chore\(deps\))" -i; then
-            echo "auto_merge=true" >> $GITHUB_OUTPUT
-            echo "reason=Standard dependency update" >> $GITHUB_OUTPUT
-          else
-            echo "auto_merge=false" >> $GITHUB_OUTPUT
-            echo "reason=Unable to determine update type" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Log decision
-        run: |
-          echo "🤖 Auto-merge: ${{ steps.update-type.outputs.auto_merge }}"
-          echo "📝 Reason: ${{ steps.update-type.outputs.reason }}"
-
-      - name: Check PR status and merge
-        if: steps.update-type.outputs.auto_merge == 'true'
+      - name: Check CI and Mergeable State with Retry
+        id: check-status
         uses: actions/github-script@v7
         with:
           script: |
-            const { exec } = require('@actions/exec');
             const prDetails = ${{ steps.pr-details.outputs.result }};
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prDetails.number
-            });
-            
-            // Check if all checks are successful
-            const { data: checks } = await github.rest.checks.listForRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: prDetails.sha
-            });
-            
-            const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: prDetails.sha
-            });
-            
-            const allChecks = [
-              ...checks.check_runs.map(check => ({
-                name: check.name,
-                status: check.status,
-                conclusion: check.conclusion
-              })),
-              ...statuses.map(status => ({
-                name: status.context,
-                status: status.state === 'pending' ? 'in_progress' : 'completed',
-                conclusion: status.state
-              }))
-            ];
-            
-            const allChecksCompleted = allChecks.every(check => 
-              check.status === 'completed' || check.conclusion === 'success'
-            );
-            
-            if (!allChecksCompleted) {
-              core.setFailed('Not all checks have completed yet');
-              return;
+            const maxWaitTime = 30 * 60 * 1000; // 30 minutes
+            const pollInterval = 30 * 1000; // 30 seconds
+            const startTime = Date.now();
+
+            console.log('⏳ Waiting for CI checks and mergeable state...');
+
+            while (Date.now() - startTime < maxWaitTime) {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prDetails.number
+              });
+
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: prDetails.sha
+              });
+
+              const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: prDetails.sha
+              });
+
+              const allChecks = [
+                ...checks.check_runs.map(check => ({
+                  name: check.name,
+                  status: check.status,
+                  conclusion: check.conclusion
+                })),
+                ...statuses.map(status => ({
+                  name: status.context,
+                  status: status.state === 'pending' ? 'in_progress' : 'completed',
+                  conclusion: status.state
+                }))
+              ];
+
+              const allChecksCompleted = allChecks.every(check => 
+                check.status === 'completed' || check.conclusion === 'success'
+              );
+
+              if (allChecksCompleted && pr.mergeable_state === 'clean') {
+                console.log('✅ All checks passed and PR is mergeable');
+                return;
+              }
+
+              console.log('🔄 Checks not complete or PR not mergeable yet. Retrying in 30 seconds...');
+              await new Promise(resolve => setTimeout(resolve, pollInterval));
             }
-            
-            if (pr.mergeable_state !== 'clean') {
-              core.setFailed(`PR is not in a mergeable state: ${pr.mergeable_state}`);
-              return;
-            }
-            
-            // Install GitHub CLI
-            await exec.exec('curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg');
-            await exec.exec('echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null');
-            await exec.exec('sudo apt update');
-            await exec.exec('sudo apt install gh');
-            
-            // Authenticate GitHub CLI
-            process.env.GH_TOKEN = process.env.GITHUB_TOKEN;
-            
-            // Merge the PR
-            try {
-              await exec.exec(`gh pr merge ${prDetails.number} --merge --auto`);
-              console.log('🎉 Successfully merged PR');
-            } catch (error) {
-              core.setFailed(`Failed to merge PR: ${error.message}`);
-            }
+
+            core.setFailed('Timeout: CI checks did not complete or PR is not mergeable within the allowed time.');
+
+  merge-pr:
+    name: Merge PR
+    runs-on: ubuntu-latest
+    needs: check-pr
+
+    steps:
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh -y
+
+      - name: Merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number=$(cat $GITHUB_WORKSPACE/pr_number.txt)
+          gh pr merge $pr_number --merge --auto
