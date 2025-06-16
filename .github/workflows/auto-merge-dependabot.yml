@@ -8,10 +8,9 @@ on:
 
 # Permissions for workflow_run event
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   checks: read
-  metadata: read
   actions: read
 
 jobs:
