@@ -10,6 +10,7 @@ permissions:
   contents: read
   pull-requests: write
   checks: read
+  metadata: read
 
 jobs:
   auto-merge:
@@ -186,17 +187,40 @@ jobs:
         with:
           script: |
             console.log('🚀 Enabling auto-merge for Dependabot PR...');
-            
+
             try {
-              await github.rest.pulls.enableAutoMerge({
+              // Get PR details first
+              const { data: pr } = await github.rest.pulls.get({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                pull_number: context.issue.number,
-                merge_method: 'squash'
+                pull_number: context.issue.number
               });
-              
+
+              // Use GraphQL API to enable auto-merge
+              const mutation = `
+                mutation EnableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+                  enablePullRequestAutoMerge(input: {
+                    pullRequestId: $pullRequestId,
+                    mergeMethod: $mergeMethod
+                  }) {
+                    pullRequest {
+                      autoMergeRequest {
+                        enabledAt
+                        mergeMethod
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const result = await github.graphql(mutation, {
+                pullRequestId: pr.node_id,
+                mergeMethod: 'SQUASH'
+              });
+
               console.log('✅ Auto-merge enabled successfully!');
-              
+              console.log('📊 Result:', JSON.stringify(result, null, 2));
+
               // Add a comment to the PR
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -205,13 +229,14 @@ jobs:
                 body: `🤖 **Auto-merge enabled**\n\n` +
                       `This Dependabot PR has been automatically approved for merging because:\n` +
                       `- ✅ Author is verified as dependabot[bot]\n` +
-                      `- ✅ Update type: ${steps.update-type.outputs.update_type}\n` +
+                      `- ✅ Update type: ${{ steps.update-type.outputs.update_type }}\n` +
                       `- ✅ All CI checks passed\n\n` +
                       `The PR will be automatically merged when all required status checks pass.`
               });
-              
+
             } catch (error) {
               console.error('❌ Failed to enable auto-merge:', error);
+              console.error('Error details:', error.message);
               core.setFailed(`Failed to enable auto-merge: ${error.message}`);
             }
 
