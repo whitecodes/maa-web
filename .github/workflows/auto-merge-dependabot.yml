@@ -7,10 +7,9 @@ on:
 
 # Minimal permissions for security
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   checks: read
-  metadata: read
 
 jobs:
   auto-merge:
