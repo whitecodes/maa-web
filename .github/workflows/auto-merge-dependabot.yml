@@ -5,7 +5,6 @@ on:
     workflows: ["Dependabot Placeholder Check"]
     types: [completed]
 
-# Permissions for workflow_run event
 permissions:
   contents: write
   pull-requests: write
@@ -17,7 +16,6 @@ jobs:
     name: Auto-merge Dependabot PR
     runs-on: ubuntu-latest
 
-    # Only run if placeholder workflow succeeded
     if: github.event.workflow_run.conclusion == 'success'
     
     steps:
@@ -79,277 +77,96 @@ jobs:
           
           # Check for major version updates (should not auto-merge)
           if echo "$PR_TITLE" | grep -E "(major|breaking|BREAKING)" -i; then
-            echo "update_type=major" >> $GITHUB_OUTPUT
             echo "auto_merge=false" >> $GITHUB_OUTPUT
             echo "reason=Major version update detected" >> $GITHUB_OUTPUT
           # Check for minor/patch updates (safe to auto-merge)
           elif echo "$PR_TITLE" | grep -E "(minor|patch|bump|update)" -i; then
-            echo "update_type=minor_or_patch" >> $GITHUB_OUTPUT
             echo "auto_merge=true" >> $GITHUB_OUTPUT
             echo "reason=Minor or patch update detected" >> $GITHUB_OUTPUT
           # Check for security updates (should auto-merge)
           elif echo "$PR_TITLE" | grep -E "(security|vulnerability|CVE)" -i; then
-            echo "update_type=security" >> $GITHUB_OUTPUT
             echo "auto_merge=true" >> $GITHUB_OUTPUT
             echo "reason=Security update detected" >> $GITHUB_OUTPUT
           # Default: check if it looks like a standard dependency update
           elif echo "$PR_TITLE" | grep -E "^(build\(deps\)|chore\(deps\))" -i; then
-            echo "update_type=dependency" >> $GITHUB_OUTPUT
             echo "auto_merge=true" >> $GITHUB_OUTPUT
             echo "reason=Standard dependency update" >> $GITHUB_OUTPUT
           else
-            echo "update_type=unknown" >> $GITHUB_OUTPUT
             echo "auto_merge=false" >> $GITHUB_OUTPUT
             echo "reason=Unable to determine update type" >> $GITHUB_OUTPUT
           fi
 
       - name: Log decision
         run: |
-          echo "🔍 Update Type: ${{ steps.update-type.outputs.update_type }}"
           echo "🤖 Auto-merge: ${{ steps.update-type.outputs.auto_merge }}"
           echo "📝 Reason: ${{ steps.update-type.outputs.reason }}"
 
-      - name: Wait for CI checks
+      - name: Check PR status and merge
         if: steps.update-type.outputs.auto_merge == 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            const maxWaitTime = 30 * 60 * 1000; // 30 minutes
-            const pollInterval = 30 * 1000; // 30 seconds
-            const startTime = Date.now();
-            
-            console.log('⏳ Waiting for CI checks to complete...');
-            
-            while (Date.now() - startTime < maxWaitTime) {
-              const prDetails = ${{ steps.pr-details.outputs.result }};
-              const { data: checks } = await github.rest.checks.listForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: prDetails.sha
-              });
-
-              const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: prDetails.sha
-              });
-              
-              // Get all check runs and statuses
-              const allChecks = [
-                ...checks.check_runs.map(check => ({
-                  name: check.name,
-                  status: check.status,
-                  conclusion: check.conclusion
-                })),
-                ...statuses.map(status => ({
-                  name: status.context,
-                  status: status.state === 'pending' ? 'in_progress' : 'completed',
-                  conclusion: status.state
-                }))
-              ];
-              
-              console.log('📊 Current check status:');
-              allChecks.forEach(check => {
-                console.log(`  - ${check.name}: ${check.status} (${check.conclusion || 'N/A'})`);
-              });
-              
-              // Filter out this workflow's checks to avoid circular dependency
-              const currentWorkflowName = 'Auto-merge Dependabot PRs';
-              const relevantChecks = allChecks.filter(check => {
-                const checkName = check.name.toLowerCase();
-                const isCurrentWorkflow = checkName.includes('auto-merge') ||
-                                        checkName.includes(currentWorkflowName.toLowerCase()) ||
-                                        check.name === currentWorkflowName;
-
-                if (isCurrentWorkflow) {
-                  console.log(`🔄 Filtering out self-check: ${check.name}`);
-                  return false;
-                }
-                return true;
-              });
-              
-              if (relevantChecks.length === 0) {
-                console.log('⚠️ No CI checks found, proceeding with merge');
-                break;
-              }
-              
-              const pendingChecks = relevantChecks.filter(check => 
-                check.status === 'in_progress' || check.status === 'queued' || check.conclusion === 'pending'
-              );
-              
-              const failedChecks = relevantChecks.filter(check => 
-                check.conclusion === 'failure' || check.conclusion === 'error' || check.conclusion === 'cancelled'
-              );
-              
-              if (failedChecks.length > 0) {
-                console.log('❌ CI checks failed:');
-                failedChecks.forEach(check => {
-                  console.log(`  - ${check.name}: ${check.conclusion}`);
-                });
-                core.setFailed('CI checks failed, cannot auto-merge');
-                return;
-              }
-              
-              if (pendingChecks.length === 0) {
-                console.log('✅ All CI checks passed!');
-                break;
-              }
-              
-              console.log(`⏳ Waiting for ${pendingChecks.length} checks to complete...`);
-              await new Promise(resolve => setTimeout(resolve, pollInterval));
-            }
-            
-            if (Date.now() - startTime >= maxWaitTime) {
-              core.setFailed('Timeout waiting for CI checks to complete');
-            }
-
-      - name: Enable auto-merge
-        if: steps.update-type.outputs.auto_merge == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log('🚀 Enabling auto-merge for Dependabot PR...');
-
-            try {
-              // Get PR details from previous step
-              const prDetails = ${{ steps.pr-details.outputs.result }};
-
-              // First check if auto-merge is already enabled
-              const prQuery = `
-                query GetPR($owner: String!, $name: String!, $number: Int!) {
-                  repository(owner: $owner, name: $name) {
-                    pullRequest(number: $number) {
-                      autoMergeRequest {
-                        enabledAt
-                        mergeMethod
-                      }
-                      mergeable
-                      mergeStateStatus
-                    }
-                  }
-                }
-              `;
-
-              const prInfo = await github.graphql(prQuery, {
-                owner: context.repo.owner,
-                name: context.repo.repo,
-                number: prDetails.number
-              });
-
-              console.log('📊 PR Info:', JSON.stringify(prInfo, null, 2));
-
-              if (prInfo.repository.pullRequest.autoMergeRequest) {
-                console.log('✅ Auto-merge is already enabled for this PR');
-                console.log(`Enabled at: ${prInfo.repository.pullRequest.autoMergeRequest.enabledAt}`);
-                console.log(`Merge method: ${prInfo.repository.pullRequest.autoMergeRequest.mergeMethod}`);
-              } else {
-                console.log('🚀 Enabling auto-merge for Dependabot PR...');
-
-                // Use GraphQL API to enable auto-merge
-                const mutation = `
-                  mutation EnableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
-                    enablePullRequestAutoMerge(input: {
-                      pullRequestId: $pullRequestId,
-                      mergeMethod: $mergeMethod
-                    }) {
-                      pullRequest {
-                        autoMergeRequest {
-                          enabledAt
-                          mergeMethod
-                        }
-                      }
-                    }
-                  }
-                `;
-
-                const result = await github.graphql(mutation, {
-                  pullRequestId: prDetails.node_id,
-                  mergeMethod: 'SQUASH'
-                });
-
-                console.log('✅ Auto-merge enabled successfully!');
-                console.log('📊 Result:', JSON.stringify(result, null, 2));
-              }
-
-              // Add a comment to the PR
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prDetails.number,
-                body: `🤖 **Auto-merge enabled**\n\n` +
-                      `This Dependabot PR has been automatically approved for merging because:\n` +
-                      `- ✅ Author is verified as dependabot[bot]\n` +
-                      `- ✅ Update type: ${{ steps.update-type.outputs.update_type }}\n` +
-                      `- ✅ All CI checks passed\n\n` +
-                      `The PR will be automatically merged when all required status checks pass.`
-              });
-
-            } catch (error) {
-              console.error('❌ Failed to enable auto-merge:', error);
-              console.error('Error details:', error.message);
-
-              // Handle specific error cases
-              if (error.message && error.message.includes('Pull request is in clean status')) {
-                console.log('ℹ️ This error usually means:');
-                console.log('  1. Auto-merge is already enabled, or');
-                console.log('  2. The repository auto-merge feature is disabled, or');
-                console.log('  3. Branch protection rules prevent auto-merge');
-
-                // Try to get more info about the PR status
-                try {
-                  const prDetails = ${{ steps.pr-details.outputs.result }};
-                  const { data: pr } = await github.rest.pulls.get({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: prDetails.number
-                  });
-
-                  console.log(`PR mergeable state: ${pr.mergeable_state}`);
-                  console.log(`PR mergeable: ${pr.mergeable}`);
-
-                  // Still add a comment explaining the situation
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: prDetails.number,
-                    body: `🤖 **Auto-merge attempted**\n\n` +
-                          `This Dependabot PR meets the criteria for auto-merge, but auto-merge could not be enabled.\n\n` +
-                          `**Possible reasons:**\n` +
-                          `- Auto-merge may already be enabled\n` +
-                          `- Repository auto-merge feature might be disabled\n` +
-                          `- Branch protection rules may prevent auto-merge\n\n` +
-                          `**PR Status:**\n` +
-                          `- Mergeable state: ${pr.mergeable_state}\n` +
-                          `- Mergeable: ${pr.mergeable}\n\n` +
-                          `Please check the PR status and merge manually if needed.`
-                  });
-
-                  // Don't fail the workflow for this specific error
-                  console.log('⚠️ Auto-merge could not be enabled, but this is not necessarily an error');
-                  return;
-                } catch (commentError) {
-                  console.error('Failed to add explanatory comment:', commentError);
-                }
-              }
-
-              core.setFailed(`Failed to enable auto-merge: ${error.message}`);
-            }
-
-      - name: Skip auto-merge
-        if: steps.update-type.outputs.auto_merge == 'false'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log('⏭️ Skipping auto-merge for this PR');
-
+            const { exec } = require('@actions/exec');
             const prDetails = ${{ steps.pr-details.outputs.result }};
-            await github.rest.issues.createComment({
+            const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: prDetails.number,
-              body: `🤖 **Auto-merge skipped**\n\n` +
-                    `This Dependabot PR was not automatically merged because:\n` +
-                    `- 📋 Reason: ${{ steps.update-type.outputs.reason }}\n` +
-                    `- 🔍 Update type: ${{ steps.update-type.outputs.update_type }}\n\n` +
-                    `Please review this PR manually before merging.`
+              pull_number: prDetails.number
             });
+            
+            // Check if all checks are successful
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: prDetails.sha
+            });
+            
+            const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: prDetails.sha
+            });
+            
+            const allChecks = [
+              ...checks.check_runs.map(check => ({
+                name: check.name,
+                status: check.status,
+                conclusion: check.conclusion
+              })),
+              ...statuses.map(status => ({
+                name: status.context,
+                status: status.state === 'pending' ? 'in_progress' : 'completed',
+                conclusion: status.state
+              }))
+            ];
+            
+            const allChecksCompleted = allChecks.every(check => 
+              check.status === 'completed' || check.conclusion === 'success'
+            );
+            
+            if (!allChecksCompleted) {
+              core.setFailed('Not all checks have completed yet');
+              return;
+            }
+            
+            if (pr.mergeable_state !== 'clean') {
+              core.setFailed(`PR is not in a mergeable state: ${pr.mergeable_state}`);
+              return;
+            }
+            
+            // Install GitHub CLI
+            await exec.exec('curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg');
+            await exec.exec('echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null');
+            await exec.exec('sudo apt update');
+            await exec.exec('sudo apt install gh');
+            
+            // Authenticate GitHub CLI
+            process.env.GH_TOKEN = process.env.GITHUB_TOKEN;
+            
+            // Merge the PR
+            try {
+              await exec.exec(`gh pr merge ${prDetails.number} --merge --auto`);
+              console.log('🎉 Successfully merged PR');
+            } catch (error) {
+              core.setFailed(`Failed to merge PR: ${error.message}`);
+            }
