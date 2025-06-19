@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 permissions:
-  pull-requests: read-only
+  pull-requests: read
   metadata: read
 
 jobs:
