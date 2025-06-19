@@ -1,9 +1,8 @@
 name: Auto-merge Dependabot PRs
 
 on:
-  workflow_run:
-    workflows: ["Dependabot Placeholder Check"]
-    types: [completed]
+  pull_request:
+    branches: [ master ]
 
 permissions:
   pull-requests: write
