@@ -1,7 +1,9 @@
 name: Auto-merge Dependabot PRs
 
 on:
-  pull_request:
+  workflow_run:
+    workflows: ["Dependabot Placeholder Check"]
+    types: [completed]
 
 permissions:
   pull-requests: write
@@ -11,7 +13,6 @@ jobs:
   auto-merge:
     name: Auto-merge Dependabot PR
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
 
     steps:
       - name: Checkout repository
