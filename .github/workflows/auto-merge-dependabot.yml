@@ -6,7 +6,7 @@ on:
 
 permissions:
   pull-requests: read
-  metdata: read
+  contents: write
 
 jobs:
   auto-approve:
