@@ -5,17 +5,10 @@ on:
     branches: [ master ]
 
 jobs:
-  auto-merge:
-    name: Auto-merge Dependabot PR
+  auto-approve:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
-
+    permissions:
+      pull-requests: write
+    if: github.actor == 'dependabot[bot]'
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Auto-merge Dependabot PR
-        uses: ahmadnassri/action-dependabot-auto-merge@v2
-        with:
-          target: minor
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: hmarr/auto-approve-action@v4
