@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  pull-requests: read-only
+  metadata: read
+
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
